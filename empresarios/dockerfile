@@ -1,0 +1,16 @@
+FROM node:16.17-alpine as builder
+
+#RUN mkdir -p /home/noe/app/node_modules && chown -R node:node/home/node/app
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+
+RUN npm install
+
+ENV VAR1 "HOLA"
+
+COPY . .
+
+EXPOSE 3000
+
+CMD [ "npm", "run", "start:dev" ]

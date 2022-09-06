@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  empresarios:
+    build: ./empresarios
+    ports:
+      - "3000:3000"
+    environment:
+      - VAR1=PRUEBA
+    networks:
+      - rabbitmq_net
+    depends_on:
+      - rabbitmq      
+  authentication:
+    build: ./authentication
+    ports:
+      - "3500:3500"
+    networks:
+      - rabbitmq_net
+    depends_on:
+      - rabbitmq
+      - empresarios
+  rabbitmq:
+    image: rabbitmq:3.10-management
+    container_name: "rabbitmq"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - ./data/:/var/lib/rabbitmq/
+      - ./logs/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_net
+
+networks:
+  rabbitmq_net:
+    driver: bridge
