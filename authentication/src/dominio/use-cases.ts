@@ -25,6 +25,6 @@ export class UseCases {
     }
 
     async isTokenValid(token: string, exchangeName: string, keys: string) {
-        this.queueServer.sendToExchange<string>(exchangeName, keys, (await this.authentication.isValidToken(token)) ? "valid" : "invalid");
+        this.queueServer.sendToExchange<string>(exchangeName, "answer." + keys, (await this.authentication.isValidToken(token)) ? "valid" : "invalid");
     }
 }

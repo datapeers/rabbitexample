@@ -46,10 +46,10 @@ export class RabbitMQProvider implements QueueServerRepository {
                 channel?.consume(
                     assertQueue?.queue ?? "",
                     (msg: ConsumeMessage | null) => {
-                        console.log("Hemos recibido", msg?.content.toString());
+                        console.log("Revibiendo en authentication", msg?.content.toString());
                         this.messageArrive.next({
-                            msg: msg?.content.toJSON(),
-                            exchangeName: exchangeName,
+                            msg: msg?.content.toString() ?? "",
+                            exchangeName: msg?.fields.exchange ?? "",
                             keys: msg?.fields.routingKey ?? "",
                         } as QueueMessage);
                     },

@@ -8,7 +8,13 @@ import { injectable } from "inversify";
 export class RabbitMQProvider implements QueueServerRepository {
     private connection: Connection | null = null;
 
+    public arrivedMessage: ReplaySubject<QueueMessage<string>>;
+
     constructor() {
+        this.arrivedMessage = new ReplaySubject<QueueMessage<string>>();
+    }
+
+    connect() {
         ampq.connect("amqp://admin:admin@rabbitmq")
             .then((connection: Connection) => {
                 console.log("Conectado con rabbitmq");
@@ -27,12 +33,11 @@ export class RabbitMQProvider implements QueueServerRepository {
         return Promise.resolve();
     }
 
-    async listenExchange<T>(exchangeName: string, args: string[]): Promise<Observable<QueueMessage<T>>> {
+    async listenExchange<T>(exchangeName: string, args: string[]) {
         const channel = await this.connection?.createChannel();
         channel?.assertExchange(exchangeName, "topic", { durable: false });
 
         const assertQueue = await channel?.assertQueue("", { exclusive: true });
-        var ans = new ReplaySubject<QueueMessage<T>>();
 
         args.forEach((element) => {
             channel?.bindQueue(assertQueue?.queue ?? "", exchangeName, element);
@@ -41,9 +46,10 @@ export class RabbitMQProvider implements QueueServerRepository {
         channel?.consume(
             assertQueue?.queue ?? "",
             (msg: ConsumeMessage | null) => {
-                ans.next({
-                    msg: msg?.content.toJSON(),
-                    exchangeName: exchangeName,
+                console.log("Recibiendo en empresarios", msg?.content.toString());
+                this.arrivedMessage.next({
+                    msg: msg?.content.toString(),
+                    exchangeName: msg?.fields.exchange,
                     keys: msg?.fields.routingKey ?? "",
                 } as QueueMessage<T>);
             },
@@ -51,7 +57,5 @@ export class RabbitMQProvider implements QueueServerRepository {
                 noAck: true,
             }
         );
-
-        return ans;
     }
 }

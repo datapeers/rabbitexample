@@ -1,6 +1,7 @@
 import { Empresario } from "@entities/empresario";
 import { inject, injectable } from "inversify";
-import { QueueServerRepository } from "src/infraestructure/queue-server-repository";
+import { firstValueFrom } from "rxjs";
+import { QueueMessage, QueueServerRepository } from "src/infraestructure/queue-server-repository";
 import { GenericRepository, TYPES } from "../core/abstracts";
 
 @injectable()
@@ -8,7 +9,16 @@ class EmpresarioCasesServices {
     constructor(
         @inject(TYPES.GenericRepository) private readonly dataServices: GenericRepository<Empresario>,
         @inject(TYPES.QueueServer) private readonly queueService: QueueServerRepository
-    ) {}
+    ) {
+        this.listen();
+    }
+
+    async listen() {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        this.queueService.connect();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        this.queueService.listenExchange("authentication", ["answer.asteri.empresarios"]);
+    }
 
     update(id: string, item: Empresario): Promise<Empresario> {
         throw new Error("Method not implemented.");
@@ -27,8 +37,16 @@ class EmpresarioCasesServices {
     async getAll() {
         try {
             this.queueService.sendToExchange("authentication", "asteri.empresarios", "asdasdasdasds");
-            const response = await this.dataServices.getAll();
-            return response;
+            const value = await firstValueFrom(this.queueService.arrivedMessage);
+            console.log(value.msg);
+            if (value.msg.toString() == "valid") {
+                console.log(1);
+                const response = await this.dataServices.getAll();
+                return response;
+            } else {
+                console.log(2);
+                return [];
+            }
         } catch (error) {
             throw error;
         }
