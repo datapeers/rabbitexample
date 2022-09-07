@@ -6,8 +6,8 @@ import express from "express";
 
 const main = async () => {
     console.log("Iniciado!!");
-    container.get<UseCases>(TYPES.UseCases);
-    await new Promise((resolve) => setTimeout(resolve, 60000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const uc = container.get<UseCases>(TYPES.UseCases);
 };
 
 main();

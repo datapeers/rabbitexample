@@ -9,12 +9,17 @@ export class UseCases {
         @inject(TYPES.Authentication) private readonly authentication: AuthenticationRepository,
         @inject(TYPES.QueueServer) private readonly queueServer: QueueServerRepository
     ) {
-        this.listenQueue();
+        this.queueServer.connected.then((state: boolean) => {
+            if (state) {
+                this.listenQueue();
+            }
+        });
     }
 
-    async listenQueue() {
-        const listen = await this.queueServer.listenExchange<string>("authentication", ["asteri.empresarios"]);
-        listen.subscribe((msg: QueueMessage) => {
+    listenQueue() {
+        this.queueServer.listenExchange<string>("authentication", ["asteri.#"]);
+
+        this.queueServer.messageArrive.subscribe((msg: QueueMessage) => {
             this.isTokenValid(msg.msg ?? "", msg.exchangeName, msg.keys);
         });
     }

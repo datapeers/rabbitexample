@@ -3,7 +3,11 @@ import { Observable } from "rxjs";
 export interface QueueServerRepository {
     sendToExchange<T>(exchangeName: string, keys: string, data: T): Promise<void>;
 
-    listenExchange<T>(exchangeName: string, keys: string[]): Promise<Observable<QueueMessage>>;
+    listenExchange<T>(exchangeName: string, keys: string[]): void;
+
+    messageArrive: Observable<QueueMessage>;
+
+    connected: Promise<boolean>;
 }
 
 export type QueueMessage = {

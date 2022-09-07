@@ -22,7 +22,8 @@ export class RabbitMQProvider implements QueueServerRepository {
     async sendToExchange<T>(exchangeName: string, keys: string, data: T): Promise<void> {
         const channel = await this.connection?.createChannel();
         channel?.assertExchange(exchangeName, "topic", { durable: false });
-        channel?.publish(exchangeName, keys, Buffer.from(JSON.stringify(data)));
+        console.log("Publicando", data);
+        console.log(channel?.publish(exchangeName, keys, Buffer.from(JSON.stringify(data))));
         return Promise.resolve();
     }
 
